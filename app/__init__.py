@@ -32,8 +32,28 @@ def page_not_found(e):
 class RequestFormatter(logging.Formatter):
     def format(self, record):
         if has_request_context():
+
+            now = time.time()
+            duration = round(now - g.start, 2)
+            dt = datetime.datetime.fromtimestamp(now)
+            timestamp = rfc3339(dt, utc=True)
+
             record.url = request.url
             record.remote_addr = request.remote_addr
+            record.request_method = request.method
+            record.request_path = request.path
+            record.ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+            record.host = request.host.split(':', 1)[0]
+            record.args = dict(request.args)
+            record.duration = duration
+            record.time = timestamp
+
+            request_id = request.headers.get('X-Request-ID')
+            if request_id:
+                record.id = request_id
+            else:
+                record.id = None
+
         else:
             record.url = None
             record.remote_addr = None
@@ -79,7 +99,9 @@ def create_app():
     # Create a log file formatter object to create the entry in the log
     formatter = RequestFormatter(
         '[%(asctime)s] %(remote_addr)s requested %(url)s\n'
-        '%(levelname)s in %(module)s: %(message)s'
+        '%(levelname)s in %(module)s: %(message)s\n'
+        '%(url)s %(remote_addr)s %(request_method)s %(request_path)s %(ip)s\n'
+        '%(host)s %(duration)s %(args)s %(time)s %(id)s\n'
     )
     # set the formatter for the log entry
     handler.setFormatter(formatter)
@@ -101,35 +123,7 @@ def create_app():
         elif request.path.startswith('/bootstrap'):
             return response
 
-        now = time.time()
-        duration = round(now - g.start, 2)
-        dt = datetime.datetime.fromtimestamp(now)
-        timestamp = rfc3339(dt, utc=True)
 
-        ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-        host = request.host.split(':', 1)[0]
-        args = dict(request.args)
-
-        log_params = [
-            ('method', request.method),
-            ('path', request.path),
-            ('status', response.status_code),
-            ('duration', duration),
-            ('time', timestamp),
-            ('ip', ip),
-            ('host', host),
-            ('params', args)
-        ]
-
-        request_id = request.headers.get('X-Request-ID')
-        if request_id:
-            log_params.append(('request_id', request_id))
-
-        parts = []
-        for name, value in log_params:
-            part = name + ': ' + str(value) + ', '
-            parts.append(part)
-        line = " ".join(parts)
         #this triggers a log entry to be created with whatever is in the line variable
         app.logger.info('this is the plain message')
 
