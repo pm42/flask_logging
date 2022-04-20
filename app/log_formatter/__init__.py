@@ -5,6 +5,7 @@ import datetime
 import time
 from flask import g
 
+
 class RequestFormatter(logging.Formatter):
     def format(self, record):
         if has_request_context():
@@ -15,6 +16,7 @@ class RequestFormatter(logging.Formatter):
             timestamp = rfc3339(dt, utc=True)
 
             record.url = request.url
+            record.time = timestamp
             record.remote_addr = request.remote_addr
             record.request_method = request.method
             record.request_path = request.path
@@ -22,7 +24,6 @@ class RequestFormatter(logging.Formatter):
             record.host = request.host.split(':', 1)[0]
             record.args = dict(request.args)
             record.duration = duration
-            record.time = timestamp
 
             request_id = request.headers.get('X-Request-ID')
             if request_id:
@@ -33,5 +34,8 @@ class RequestFormatter(logging.Formatter):
         else:
             record.url = None
             record.remote_addr = None
+            record.request_method = None
+            record.duration = None
+            record.time = None
 
         return super().format(record)
