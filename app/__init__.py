@@ -3,6 +3,7 @@ import flask_login
 import os
 import time
 
+
 from flask import g, request
 
 
@@ -19,8 +20,9 @@ from app.db.models import User
 from app.exceptions import http_exceptions
 from app.simple_pages import simple_pages
 import logging
+from logging import config
 from flask.logging import default_handler
-from app.log_formatter import RequestFormatter
+from app.log_config import log_config
 
 login_manager = flask_login.LoginManager()
 
@@ -51,6 +53,9 @@ def create_app():
     app.cli.add_command(create_database)
     app.cli.add_command(create_log_folder)
 
+
+
+
     # Deactivate the default flask logger so that log messages don't get duplicated
     app.logger.removeHandler(default_handler)
 
@@ -61,24 +66,8 @@ def create_app():
     # make a directory if it doesn't exist
     if not os.path.exists(logdir):
         os.mkdir(logdir)
-    # set name of the log file
-    log_file = os.path.join(logdir, 'info.log')
 
-    handler = logging.FileHandler(log_file)
-    # Create a log file formatter object to create the entry in the log
-    formatter = RequestFormatter(
-        '%(message)s\n'
-        'Log_Level:%(levelname)s Module:%(module)s \n'
-        '[%(time)s]: %(remote_addr)s requested %(url)s\n'
-        'Method:%(request_method)s Duration:%(duration)s\n'
-
-    )
-    # set the formatter for the log entry
-    handler.setFormatter(formatter)
-    # Set the logging level of the file handler object so that it logs INFO and up
-    handler.setLevel(logging.INFO)
-    # Add the handler for the log entry
-    app.logger.addHandler(handler)
+    config.dictConfig(log_config)
 
     @app.before_request
     def start_timer():
@@ -93,9 +82,7 @@ def create_app():
         elif request.path.startswith('/bootstrap'):
             return response
 
-
-        #this triggers a log entry to be created with whatever is in the line variable
-        app.logger.info('Logging Request:')
+        app.logger.info('Info Logging:')
 
         return response
 
