@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, abort
+from flask import Blueprint, render_template, abort, current_app
 from jinja2 import TemplateNotFound
 
 simple_pages = Blueprint('simple_pages', __name__,
