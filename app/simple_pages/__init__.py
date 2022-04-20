@@ -22,7 +22,6 @@ def about():
 @simple_pages.route('/welcome')
 def welcome():
     try:
-        current_app.logger.debug('Debugging')
         return render_template('welcome.html')
     except TemplateNotFound:
         abort(404)
