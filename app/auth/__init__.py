@@ -108,7 +108,6 @@ def edit_user(user_id):
         db.session.add(user)
         db.session.commit()
         flash('User Edited Successfully', 'success')
-        current_app.logger.debug("Debug Logging")
         return redirect(url_for('auth.browse_users'))
     return render_template('user_edit.html', form=form)
 
@@ -152,6 +151,7 @@ def edit_profile():
         user.about = form.about.data
         db.session.add(current_user)
         db.session.commit()
+        current_app.logger.debug("Debug Logging")
         flash('You Successfully Updated your Profile', 'success')
         return redirect(url_for('auth.dashboard'))
     return render_template('profile_edit.html', form=form)
