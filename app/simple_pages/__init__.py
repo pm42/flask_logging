@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, abort
+from flask import Blueprint, render_template, abort, current_app
 from jinja2 import TemplateNotFound
 
 simple_pages = Blueprint('simple_pages', __name__,
@@ -22,6 +22,7 @@ def about():
 @simple_pages.route('/welcome')
 def welcome():
     try:
+        current_app.logger.debug('Debugging')
         return render_template('welcome.html')
     except TemplateNotFound:
         abort(404)
